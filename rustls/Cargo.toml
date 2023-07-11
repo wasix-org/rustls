@@ -16,9 +16,7 @@ build = "build.rs"
 rustversion = { version = "1.0.6", optional = true }
 
 [dependencies]
-ring = "0.16.20"
-
-
+ring = { git = "https://github.com/wasix-org/ring.git", branch = "wasix" }
 log = { version = "0.4.4", optional = true }
 sct = "0.7.0"
 webpki = { package = "rustls-webpki", version = "0.100.0", features = [
