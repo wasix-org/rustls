@@ -277,7 +277,7 @@ pub(super) fn prepare_resumption(
 
     let binder_len = resuming_suite
         .hash_algorithm()
-        .output_len;
+        .output_len();
     let binder = vec![0u8; binder_len];
 
     let psk_identity =
