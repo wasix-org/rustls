@@ -343,11 +343,13 @@ pub fn verify_server_cert_signed_by_trust_anchor(
     let webpki_now = webpki::Time::try_from(now).map_err(|_| Error::FailedToGetCurrentTime)?;
 
     cert.0
-        .verify_is_valid_tls_server_cert(
+        .verify_for_usage(
             SUPPORTED_SIG_ALGS,
-            &webpki::TlsServerTrustAnchors(&trust_roots),
+            &trust_roots,
             &chain,
             webpki_now,
+            webpki::KeyUsage::server_auth(),
+            &[], // no CRLs
         )
         .map_err(pki_error)
         .map(|_| ())
@@ -417,7 +419,7 @@ impl ServerCertVerifier for WebPkiVerifier {
 #[allow(unreachable_pub)]
 #[cfg_attr(docsrs, doc(cfg(feature = "dangerous_configuration")))]
 pub struct WebPkiVerifier {
-    roots: RootCertStore,
+    roots: Arc<RootCertStore>,
     ct_policy: Option<CertificateTransparencyPolicy>,
 }
 
@@ -430,8 +432,14 @@ impl WebPkiVerifier {
     /// `ct_logs` is the list of logs that are trusted for Certificate
     /// Transparency. Currently CT log enforcement is opportunistic; see
     /// <https://github.com/rustls/rustls/issues/479>.
-    pub fn new(roots: RootCertStore, ct_policy: Option<CertificateTransparencyPolicy>) -> Self {
-        Self { roots, ct_policy }
+    pub fn new(
+        roots: impl Into<Arc<RootCertStore>>,
+        ct_policy: Option<CertificateTransparencyPolicy>,
+    ) -> Self {
+        Self {
+            roots: roots.into(),
+            ct_policy,
+        }
     }
 
     /// Returns the signature verification methods supported by
@@ -633,11 +641,12 @@ impl ClientCertVerifier for AllowAnyAuthenticatedClient {
             .collect::<Vec<_>>();
 
         cert.0
-            .verify_is_valid_tls_client_cert(
+            .verify_for_usage(
                 SUPPORTED_SIG_ALGS,
-                &webpki::TlsClientTrustAnchors(&trust_roots),
+                &trust_roots,
                 &chain,
                 now,
+                webpki::KeyUsage::client_auth(),
                 crls.as_slice(),
             )
             .map_err(pki_error)

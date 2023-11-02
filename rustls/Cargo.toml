@@ -1,8 +1,8 @@
 [package]
 name = "rustls"
-version = "0.21.5"
+version = "0.21.8"
 edition = "2021"
-rust-version = "1.60"
+rust-version = "1.61"
 license = "Apache-2.0 OR ISC OR MIT"
 readme = "../README.md"
 description = "Rustls is a modern TLS library written in Rust."
@@ -16,10 +16,10 @@ build = "build.rs"
 rustversion = { version = "1.0.6", optional = true }
 
 [dependencies]
-ring = "0.17.5"
 log = { version = "0.4.4", optional = true }
+ring = "0.17"
 sct = { git = "https://github.com/wasix-org/sct.git", branch = "v0.7.0" }
-webpki = { version = "0.101.7", package = "rustls-webpki", features = [
+webpki = { package = "rustls-webpki", version = "0.101.7", features = [
     "alloc",
     "std",
 ] }
@@ -34,11 +34,11 @@ tls12 = []
 read_buf = ["rustversion"]
 
 [dev-dependencies]
+webpki-roots = { version = "0.25.2", git = "https://github.com/wasix-org/webpki-roots.git", branch = "v0.25.2" }
+rustls-pemfile = "1.0.3"
 bencher = "0.1.5"
 env_logger = "0.10"
 log = "0.4.4"
-webpki-roots = { version = "0.25.2", git = "https://github.com/wasix-org/webpki-roots.git", branch = "v0.25.2" }
-rustls-pemfile = "1.0.3"
 base64 = "0.21"
 
 [[example]]

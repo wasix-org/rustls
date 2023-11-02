@@ -111,8 +111,7 @@ impl TlsClient {
         //
         // Read it and then write it to stdout.
         if io_state.plaintext_bytes_to_read() > 0 {
-            let mut plaintext = Vec::new();
-            plaintext.resize(io_state.plaintext_bytes_to_read(), 0u8);
+            let mut plaintext = vec![0u8; io_state.plaintext_bytes_to_read()];
             self.tls_conn
                 .reader()
                 .read_exact(&mut plaintext)
@@ -379,9 +378,8 @@ fn make_config(args: &Args) -> Arc<rustls::ClientConfig> {
         let mut reader = BufReader::new(certfile);
         root_store.add_parsable_certificates(&rustls_pemfile::certs(&mut reader).unwrap());
     } else {
-        root_store.add_server_trust_anchors(
+        root_store.add_trust_anchors(
             webpki_roots::TLS_SERVER_ROOTS
-                .0
                 .iter()
                 .map(|ta| {
                     OwnedTrustAnchor::from_subject_spki_name_constraints(
