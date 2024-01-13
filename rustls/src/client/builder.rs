@@ -6,7 +6,7 @@ use crate::error::Error;
 use crate::key_log::NoKeyLog;
 use crate::msgs::handshake::CertificateChain;
 use crate::webpki::{self, WebPkiServerVerifier};
-use crate::{verify, key, versions};
+use crate::{verify, versions};
 
 use super::client_conn::Resumption;
 
@@ -135,22 +135,6 @@ impl ConfigBuilder<ClientConfig, WantsClientCert> {
         let resolver =
             handy::AlwaysResolvesClientCert::new(private_key, CertificateChain(cert_chain))?;
         Ok(self.with_client_cert_resolver(Arc::new(resolver)))
-    }
-
-    /// Sets a single certificate chain and matching private key for use
-    /// in client authentication.
-    ///
-    /// `cert_chain` is a vector of DER-encoded certificates.
-    /// `key_der` is a DER-encoded RSA, ECDSA, or Ed25519 private key.
-    ///
-    /// This function fails if `key_der` is invalid.
-    #[deprecated(since = "0.21.4", note = "Use `with_client_auth_cert` instead")]
-    pub fn with_single_cert(
-        self,
-        cert_chain: Vec<key::Certificate>,
-        key_der: key::PrivateKey,
-    ) -> Result<ClientConfig, Error> {
-        self.with_client_auth_cert(cert_chain, key_der)
     }
 
     /// Do not support client auth.
