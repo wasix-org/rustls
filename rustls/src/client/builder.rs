@@ -4,9 +4,10 @@ use crate::client::{ClientConfig, ResolvesClientCert};
 use crate::crypto::CryptoProvider;
 use crate::error::Error;
 use crate::key_log::NoKeyLog;
-use crate::msgs::handshake::CertificateChain;
-use crate::webpki::{self, WebPkiServerVerifier};
-use crate::{verify, versions};
+use crate::kx::SupportedKxGroup;
+use crate::suites::SupportedCipherSuite;
+use crate::verify::{self, CertificateTransparencyPolicy};
+use crate::{anchors, key, versions};
 
 use super::client_conn::Resumption;
 
