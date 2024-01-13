@@ -1,37 +1,32 @@
-/// This is the simplest possible client using rustls that does something useful:
-/// it accepts the default configuration, loads some root certs, and then connects
-/// to google.com and issues a basic HTTP request.  The response is printed to stdout.
-///
-/// It makes use of rustls::Stream to treat the underlying TLS connection as a basic
-/// bi-directional stream -- the underlying IO is performed transparently.
-///
-/// Note that `unwrap()` is used to deal with networking errors; this is not something
-/// that is sensible outside of example code.
-use std::sync::Arc;
+//! This is the simplest possible client using rustls that does something useful:
+//! it accepts the default configuration, loads some root certs, and then connects
+//! to rust-lang.org and issues a basic HTTP request.  The response is printed to stdout.
+//!
+//! It makes use of rustls::Stream to treat the underlying TLS connection as a basic
+//! bi-directional stream -- the underlying IO is performed transparently.
+//!
+//! Note that `unwrap()` is used to deal with networking errors; this is not something
+//! that is sensible outside of example code.
 
 use std::io::{stdout, Read, Write};
 use std::net::TcpStream;
+use std::sync::Arc;
 
-use rustls::{OwnedTrustAnchor, RootCertStore};
+use rustls::RootCertStore;
 
 fn main() {
     let mut root_store = RootCertStore::empty();
-    root_store.add_server_trust_anchors(
+    root_store.extend(
         webpki_roots::TLS_SERVER_ROOTS
-            .0
             .iter()
-            .map(|ta| {
-                OwnedTrustAnchor::from_subject_spki_name_constraints(
-                    ta.subject,
-                    ta.spki,
-                    ta.name_constraints,
-                )
-            }),
+            .cloned(),
     );
-    let config = rustls::ClientConfig::builder()
-        .with_safe_defaults()
+    let mut config = rustls::ClientConfig::builder()
         .with_root_certificates(root_store)
         .with_no_client_auth();
+
+    // Allow using SSLKEYLOGFILE.
+    config.key_log = Arc::new(rustls::KeyLogFile::new());
 
     let server_name = "www.rust-lang.org".try_into().unwrap();
     let mut conn = rustls::ClientConnection::new(Arc::new(config), server_name).unwrap();

@@ -1,8 +1,8 @@
 [package]
 name = "rustls"
-version = "0.21.5"
+version = "0.22.1"
 edition = "2021"
-rust-version = "1.60"
+rust-version = "1.61"
 license = "Apache-2.0 OR ISC OR MIT"
 readme = "../README.md"
 description = "Rustls is a modern TLS library written in Rust."
@@ -16,35 +16,38 @@ build = "build.rs"
 rustversion = { version = "1.0.6", optional = true }
 
 [dependencies]
-ring = { git = "https://github.com/wasix-org/ring.git", branch = "wasix" }
+aws-lc-rs = { version = "1.5", optional = true }
 log = { version = "0.4.4", optional = true }
+ring = { git = "https://github.com/wasix-org/ring.git", branch = "wasix", optional = true }
 sct = { git = "https://github.com/wasix-org/sct.git", branch = "v0.7.0" }
-webpki = { package = "rustls-webpki", git = "https://github.com/wasix-org/webpki.git", branch = "v0.101.0", features = [
+subtle = { version = "2.5.0", default-features = false }
+webpki = { package = "rustls-webpki", git = "https://github.com/wasix-org/webpki.git", branch = "v0.102.1", features = [
     "alloc",
     "std",
 ] }
+pki-types = { package = "rustls-pki-types", version = "1", features = ["std"] }
+zeroize = "1.6.0"
 
 [features]
-default = ["logging", "tls12"]
+default = ["logging", "ring", "tls12"]
 logging = ["log"]
-dangerous_configuration = []
-secret_extraction = []
-quic = []
+aws_lc_rs = ["dep:aws-lc-rs", "webpki/aws_lc_rs"]
+ring = ["dep:ring", "webpki/ring"]
 tls12 = []
 read_buf = ["rustversion"]
 
 [dev-dependencies]
+base64 = "0.21"
 bencher = "0.1.5"
 env_logger = "0.10"
 log = "0.4.4"
 webpki-roots = { git = "https://github.com/wasix-org/webpki-roots.git", branch = "v0.24.0" }
-rustls-pemfile = "1.0.3"
-base64 = "0.21"
+rustls-pemfile = "2"
 
 [[example]]
 name = "bogo_shim"
 path = "examples/internal/bogo_shim.rs"
-required-features = ["dangerous_configuration", "quic"]
+required-features = ["tls12"]
 
 [[example]]
 name = "bench"
@@ -54,7 +57,14 @@ path = "examples/internal/bench.rs"
 name = "benchmarks"
 path = "benches/benchmarks.rs"
 harness = false
+required-features = ["ring"]
 
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
+
+[package.metadata.cargo_check_external_types]
+allowed_external_types = [
+    "rustls_pki_types",
+    "rustls_pki_types::*",
+]

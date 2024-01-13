@@ -1,8 +1,18 @@
 [workspace]
 members = [
+  # CI benchmarks
+  "ci-bench",
+  # Network-based tests
+  "connect-tests",
   # tests and example code
   "examples",
   # the main library and tests
+  "rustls",
+  # example of custom provider
+  "provider-example",
+]
+default-members = [
+  "examples",
   "rustls",
 ]
 exclude = ["admin/rustfmt"]
@@ -13,4 +23,3 @@ resolver = "2"
 
 [patch.crates-io]
 ring = { git = "https://github.com/wasix-org/ring.git", branch = "wasix" }
-mio = { git = "https://github.com/wasix-org/mio.git", branch = "wasix" }

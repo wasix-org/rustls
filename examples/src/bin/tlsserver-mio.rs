@@ -1,25 +1,16 @@
-use std::sync::Arc;
-
-use mio::net::{TcpListener, TcpStream};
-
-#[macro_use]
-extern crate log;
-
 use std::collections::HashMap;
-use std::fs;
-use std::io;
-use std::io::{BufReader, Read, Write};
-use std::net;
-
-#[macro_use]
-extern crate serde_derive;
+use std::io::{self, BufReader, Read, Write};
+use std::sync::Arc;
+use std::{fs, net};
 
 use docopt::Docopt;
+use log::{debug, error};
+use mio::net::{TcpListener, TcpStream};
+use serde::Deserialize;
 
-use rustls::server::{
-    AllowAnyAnonymousOrAuthenticatedClient, AllowAnyAuthenticatedClient, NoClientAuth,
-    UnparsedCertRevocationList,
-};
+use rustls::crypto::{ring, CryptoProvider};
+use rustls::pki_types::{CertificateDer, CertificateRevocationListDer, PrivateKeyDer};
+use rustls::server::WebPkiClientVerifier;
 use rustls::{self, RootCertStore};
 
 // Token for our listening socket.
@@ -241,8 +232,7 @@ impl OpenConnection {
         // Read and process all available plaintext.
         if let Ok(io_state) = self.tls_conn.process_new_packets() {
             if io_state.plaintext_bytes_to_read() > 0 {
-                let mut buf = Vec::new();
-                buf.resize(io_state.plaintext_bytes_to_read(), 0u8);
+                let mut buf = vec![0u8; io_state.plaintext_bytes_to_read()];
 
                 self.tls_conn
                     .reader()
@@ -276,7 +266,7 @@ impl OpenConnection {
         // If we have a successful but empty read, that's an EOF.
         // Otherwise, we shove the data into the TLS session.
         match maybe_len {
-            Some(len) if len == 0 => {
+            Some(0) => {
                 debug!("back eof");
                 self.closing = true;
             }
@@ -468,7 +458,7 @@ struct Args {
 }
 
 fn find_suite(name: &str) -> Option<rustls::SupportedCipherSuite> {
-    for suite in rustls::ALL_CIPHER_SUITES {
+    for suite in rustls::crypto::ring::ALL_CIPHER_SUITES {
         let sname = format!("{:?}", suite.suite()).to_lowercase();
 
         if sname == name.to_string().to_lowercase() {
@@ -512,25 +502,23 @@ fn lookup_versions(versions: &[String]) -> Vec<&'static rustls::SupportedProtoco
     out
 }
 
-fn load_certs(filename: &str) -> Vec<rustls::Certificate> {
+fn load_certs(filename: &str) -> Vec<CertificateDer<'static>> {
     let certfile = fs::File::open(filename).expect("cannot open certificate file");
     let mut reader = BufReader::new(certfile);
     rustls_pemfile::certs(&mut reader)
-        .unwrap()
-        .iter()
-        .map(|v| rustls::Certificate(v.clone()))
+        .map(|result| result.unwrap())
         .collect()
 }
 
-fn load_private_key(filename: &str) -> rustls::PrivateKey {
+fn load_private_key(filename: &str) -> PrivateKeyDer<'static> {
     let keyfile = fs::File::open(filename).expect("cannot open private key file");
     let mut reader = BufReader::new(keyfile);
 
     loop {
         match rustls_pemfile::read_one(&mut reader).expect("cannot parse private key .pem file") {
-            Some(rustls_pemfile::Item::RSAKey(key)) => return rustls::PrivateKey(key),
-            Some(rustls_pemfile::Item::PKCS8Key(key)) => return rustls::PrivateKey(key),
-            Some(rustls_pemfile::Item::ECKey(key)) => return rustls::PrivateKey(key),
+            Some(rustls_pemfile::Item::Pkcs1Key(key)) => return key.into(),
+            Some(rustls_pemfile::Item::Pkcs8Key(key)) => return key.into(),
+            Some(rustls_pemfile::Item::Sec1Key(key)) => return key.into(),
             None => break,
             _ => {}
         }
@@ -555,7 +543,7 @@ fn load_ocsp(filename: &Option<String>) -> Vec<u8> {
     ret
 }
 
-fn load_crls(filenames: &[String]) -> Vec<UnparsedCertRevocationList> {
+fn load_crls(filenames: &[String]) -> Vec<CertificateRevocationListDer<'static>> {
     filenames
         .iter()
         .map(|filename| {
@@ -564,7 +552,7 @@ fn load_crls(filenames: &[String]) -> Vec<UnparsedCertRevocationList> {
                 .expect("cannot open CRL file")
                 .read_to_end(&mut der)
                 .unwrap();
-            UnparsedCertRevocationList(der)
+            CertificateRevocationListDer::from(der)
         })
         .collect()
 }
@@ -574,28 +562,29 @@ fn make_config(args: &Args) -> Arc<rustls::ServerConfig> {
         let roots = load_certs(args.flag_auth.as_ref().unwrap());
         let mut client_auth_roots = RootCertStore::empty();
         for root in roots {
-            client_auth_roots.add(&root).unwrap();
+            client_auth_roots.add(root).unwrap();
         }
         let crls = load_crls(&args.flag_crl);
         if args.flag_require_auth {
-            AllowAnyAuthenticatedClient::new(client_auth_roots)
+            WebPkiClientVerifier::builder(client_auth_roots.into())
                 .with_crls(crls)
-                .expect("invalid CRLs")
-                .boxed()
+                .build()
+                .unwrap()
         } else {
-            AllowAnyAnonymousOrAuthenticatedClient::new(client_auth_roots)
+            WebPkiClientVerifier::builder(client_auth_roots.into())
                 .with_crls(crls)
-                .expect("invalid CRLs")
-                .boxed()
+                .allow_unauthenticated()
+                .build()
+                .unwrap()
         }
     } else {
-        NoClientAuth::boxed()
+        WebPkiClientVerifier::no_client_auth()
     };
 
     let suites = if !args.flag_suite.is_empty() {
         lookup_suites(&args.flag_suite)
     } else {
-        rustls::ALL_CIPHER_SUITES.to_vec()
+        rustls::crypto::ring::ALL_CIPHER_SUITES.to_vec()
     };
 
     let versions = if !args.flag_protover.is_empty() {
@@ -616,14 +605,18 @@ fn make_config(args: &Args) -> Arc<rustls::ServerConfig> {
     );
     let ocsp = load_ocsp(&args.flag_ocsp);
 
-    let mut config = rustls::ServerConfig::builder()
-        .with_cipher_suites(&suites)
-        .with_safe_default_kx_groups()
-        .with_protocol_versions(&versions)
-        .expect("inconsistent cipher-suites/versions specified")
-        .with_client_cert_verifier(client_auth)
-        .with_single_cert_with_ocsp_and_sct(certs, privkey, ocsp, vec![])
-        .expect("bad certificates/private key");
+    let mut config = rustls::ServerConfig::builder_with_provider(
+        CryptoProvider {
+            cipher_suites: suites,
+            ..ring::default_provider()
+        }
+        .into(),
+    )
+    .with_protocol_versions(&versions)
+    .expect("inconsistent cipher-suites/versions specified")
+    .with_client_cert_verifier(client_auth)
+    .with_single_cert_with_ocsp(certs, privkey, ocsp)
+    .expect("bad certificates/private key");
 
     config.key_log = Arc::new(rustls::KeyLogFile::new());
 
@@ -632,7 +625,7 @@ fn make_config(args: &Args) -> Arc<rustls::ServerConfig> {
     }
 
     if args.flag_tickets {
-        config.ticketer = rustls::Ticketer::new().unwrap();
+        config.ticketer = rustls::crypto::ring::Ticketer::new().unwrap();
     }
 
     config.alpn_protocols = args
@@ -664,12 +657,13 @@ fn main() {
         return;
     }
 
-    let mut addr: net::SocketAddr = "0.0.0.0:443".parse().unwrap();
+    let mut addr: net::SocketAddr = "[::]:443".parse().unwrap();
     addr.set_port(args.flag_port.unwrap_or(443));
 
     let config = make_config(&args);
 
     let mut listener = TcpListener::bind(addr).expect("cannot listen on port");
+    println!("listening on {addr}");
     let mut poll = mio::Poll::new().unwrap();
     poll.registry()
         .register(&mut listener, LISTENER, mio::Interest::READABLE)
