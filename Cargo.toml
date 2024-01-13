@@ -22,4 +22,4 @@ resolver = "2"
 # wasix = { version = "=0.2.18" }
 
 [patch.crates-io]
-ring = { git = "https://github.com/wasix-org/ring.git", branch = "wasix" }
+ring = { git = "https://github.com/wasix-org/ring.git", branch = "0.16.20" }
