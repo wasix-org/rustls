@@ -1653,7 +1653,7 @@ dependencies = [
 [[package]]
 name = "ring"
 version = "0.17.7"
-source = "git+https://github.com/wasix-org/ring.git?branch=0.17.7#dd0afd5fe558f330dca9098be70fc79fe825dfaa"
+source = "git+https://github.com/wasix-org/ring.git?branch=0.17.7#d055752924a57c1b956f78198e7d4b731fbc1e49"
 dependencies = [
  "cc",
  "cfg-if",
