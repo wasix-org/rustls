@@ -1558,7 +1558,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5d918c80c5a4c7560db726763020bd16db179e4d5b828078842274a443addb5d"
 dependencies = [
  "pem",
- "ring 0.17.7",
+ "ring 0.17.6",
  "time",
  "yasna",
 ]
@@ -1638,15 +1638,30 @@ dependencies = [
 
 [[package]]
 name = "ring"
-version = "0.17.7"
+version = "0.17.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "688c63d65483050968b2a8937f7995f443e27041a0f7700aa59b0822aedebb74"
+checksum = "684d5e6e18f669ccebf64a92236bb7db9a34f07be010e3627368182027180866"
 dependencies = [
  "cc",
  "getrandom",
  "libc",
  "spin 0.9.8",
  "untrusted 0.9.0",
+ "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "ring"
+version = "0.17.7"
+source = "git+https://github.com/wasix-org/ring.git?branch=0.17.7#dd0afd5fe558f330dca9098be70fc79fe825dfaa"
+dependencies = [
+ "cc",
+ "cfg-if",
+ "getrandom",
+ "libc",
+ "spin 0.9.8",
+ "untrusted 0.9.0",
+ "wasi",
  "windows-sys 0.48.0",
 ]
 
@@ -1712,9 +1727,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9d5a6813c0759e4609cd494e8e725babae6a2ca7b62a5536a13daaec6fcb7ba"
 dependencies = [
  "log",
- "ring 0.17.7",
+ "ring 0.17.6",
  "rustls-webpki 0.101.7",
- "sct",
+ "sct 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1731,7 +1746,7 @@ dependencies = [
  "rustls-pki-types",
  "rustls-webpki 0.102.1",
  "rustversion",
- "sct",
+ "sct 0.7.1 (git+https://github.com/wasix-org/sct.git?branch=v0.7.1)",
  "subtle",
  "webpki-roots 0.26.0",
  "zeroize",
@@ -1842,15 +1857,14 @@ version = "0.101.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b6275d1ee7a1cd780b64aca7726599a1dbc893b1e64144529e55c3c2f745765"
 dependencies = [
- "ring 0.17.7",
+ "ring 0.17.6",
  "untrusted 0.9.0",
 ]
 
 [[package]]
 name = "rustls-webpki"
 version = "0.102.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef4ca26037c909dedb327b48c3327d0ba91d3dd3c4e05dad328f210ffb68e95b"
+source = "git+https://github.com/wasix-org/webpki.git?branch=v0.102.1#b40fed89786cf3d13c27a3bb9d7fcca187c2ff07"
 dependencies = [
  "aws-lc-rs",
  "ring 0.17.7",
@@ -1881,6 +1895,15 @@ name = "sct"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "da046153aa2352493d6cb7da4b6e5c0c057d8a1d0a9aa8560baffdd945acd414"
+dependencies = [
+ "ring 0.17.6",
+ "untrusted 0.9.0",
+]
+
+[[package]]
+name = "sct"
+version = "0.7.1"
+source = "git+https://github.com/wasix-org/sct.git?branch=v0.7.1#ceb4eb04711cb84870a3909e2263dc95b780b626"
 dependencies = [
  "ring 0.17.7",
  "untrusted 0.9.0",
@@ -1975,9 +1998,9 @@ dependencies = [
 
 [[package]]
 name = "smallvec"
-version = "1.11.2"
+version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4dccd0940a2dcdf68d092b8cbab7dc0ad8fa938bf95787e1b916b0e3d0e8e970"
+checksum = "2593d31f82ead8df961d8bd23a64c2ccf2eb5dd34b0a34bfb4dd54011c72009e"
 
 [[package]]
 name = "socket2"
