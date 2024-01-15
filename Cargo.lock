@@ -1552,6 +1552,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "rcgen"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5d918c80c5a4c7560db726763020bd16db179e4d5b828078842274a443addb5d"
+dependencies = [
+ "pem",
+ "ring 0.17.7",
+ "time",
+ "yasna",
+]
+
+[[package]]
 name = "redox_syscall"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1612,15 +1624,15 @@ dependencies = [
 [[package]]
 name = "ring"
 version = "0.16.20"
-source = "git+https://github.com/wasix-org/ring.git?branch=wasix#ae8229623bd623370e0dea68b046e62c228b47bd"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3053cf52e236a3ed746dfc745aa9cacf1b791d846bdaf412f60a8d7d6e17c8fc"
 dependencies = [
  "cc",
- "getrandom",
  "libc",
  "once_cell",
- "spin 0.9.8",
+ "spin 0.5.2",
  "untrusted 0.7.1",
- "wasi",
+ "web-sys",
  "winapi",
 ]
 
@@ -1702,7 +1714,7 @@ dependencies = [
  "log",
  "ring 0.17.7",
  "rustls-webpki 0.101.7",
- "sct 0.7.1",
+ "sct",
 ]
 
 [[package]]
@@ -1714,14 +1726,14 @@ dependencies = [
  "bencher",
  "env_logger",
  "log",
- "ring 0.16.20",
+ "ring 0.17.7",
  "rustls-pemfile 2.0.0",
  "rustls-pki-types",
- "rustls-webpki 0.102.1 (git+https://github.com/wasix-org/webpki.git?branch=v0.102.1)",
+ "rustls-webpki 0.102.1",
  "rustversion",
- "sct 0.7.0",
+ "sct",
  "subtle",
- "webpki-roots 0.24.0",
+ "webpki-roots 0.26.0",
  "zeroize",
 ]
 
@@ -1759,9 +1771,9 @@ dependencies = [
  "env_logger",
  "log",
  "mio",
- "rcgen",
+ "rcgen 0.12.0",
  "regex",
- "ring 0.16.20",
+ "ring 0.17.7",
  "rustls 0.22.2",
  "rustls-pemfile 2.0.0",
  "rustls-pki-types",
@@ -1811,26 +1823,17 @@ dependencies = [
  "p256",
  "pkcs8",
  "rand_core",
- "rcgen",
+ "rcgen 0.11.3",
  "rsa",
  "rustls 0.22.2",
  "rustls-pki-types",
- "rustls-webpki 0.102.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustls-webpki 0.102.1",
  "serde",
  "serde_json",
  "sha2",
  "signature",
  "webpki-roots 0.26.0",
  "x25519-dalek",
-]
-
-[[package]]
-name = "rustls-webpki"
-version = "0.101.1"
-source = "git+https://github.com/wasix-org/webpki.git?branch=v0.101.0#b647431385890a1d648bbccb44340b0384fc7c8c"
-dependencies = [
- "ring 0.16.20",
- "untrusted 0.7.1",
 ]
 
 [[package]]
@@ -1849,18 +1852,8 @@ version = "0.102.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ef4ca26037c909dedb327b48c3327d0ba91d3dd3c4e05dad328f210ffb68e95b"
 dependencies = [
- "ring 0.17.7",
- "rustls-pki-types",
- "untrusted 0.9.0",
-]
-
-[[package]]
-name = "rustls-webpki"
-version = "0.102.1"
-source = "git+https://github.com/wasix-org/webpki.git?branch=v0.102.1#d79a84859f32c48869ffea7a17113854385605da"
-dependencies = [
  "aws-lc-rs",
- "ring 0.16.20",
+ "ring 0.17.7",
  "rustls-pki-types",
  "untrusted 0.9.0",
 ]
@@ -1882,15 +1875,6 @@ name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
-
-[[package]]
-name = "sct"
-version = "0.7.0"
-source = "git+https://github.com/wasix-org/sct.git?branch=v0.7.0#25c9cb550fe06601da25be1dbb7ca46449886acd"
-dependencies = [
- "ring 0.16.20",
- "untrusted 0.7.1",
-]
 
 [[package]]
 name = "sct"
@@ -2343,11 +2327,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4d91413b1c31d7539ba5ef2451af3f0b833a005eb27a631cec32bc0635a8602b"
 
 [[package]]
-name = "webpki-roots"
-version = "0.24.0"
-source = "git+https://github.com/wasix-org/webpki-roots.git?branch=v0.24.0#a9ef804104f0ce70b80a04052940a6fa3fdae740"
+name = "web-sys"
+version = "0.3.67"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "58cd2333b6e0be7a39605f0e255892fd7418a682d8da8fe042fe25128794d2ed"
 dependencies = [
- "rustls-webpki 0.101.1",
+ "js-sys",
+ "wasm-bindgen",
 ]
 
 [[package]]
