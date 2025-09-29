@@ -26,8 +26,11 @@ use crate::{Error, NamedGroup, ProtocolVersion, SupportedProtocolVersion, suites
 pub mod ring;
 
 /// aws-lc-rs-based CryptoProvider.
+// Not supported on WASIX, so replace it with ring.
 #[cfg(feature = "aws_lc_rs")]
-pub mod aws_lc_rs;
+pub mod aws_lc_rs {
+    pub use super::ring::*;
+}
 
 /// TLS message encryption/decryption interfaces.
 pub mod cipher;
@@ -693,7 +696,7 @@ impl From<Vec<u8>> for SharedSecret {
 #[cfg(all(feature = "aws_lc_rs", any(feature = "fips", docsrs)))]
 #[cfg_attr(docsrs, doc(cfg(feature = "fips")))]
 pub fn default_fips_provider() -> CryptoProvider {
-    aws_lc_rs::default_provider()
+    ring::default_provider()
 }
 
 mod static_default {
